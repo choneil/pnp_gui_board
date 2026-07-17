@@ -46,7 +46,7 @@
 
 CRC_HandleTypeDef hcrc;
 
-DCMIPP_HandleTypeDef hdcmipp;
+extern DCMIPP_HandleTypeDef hdcmipp;
 
 DMA2D_HandleTypeDef hdma2d;
 
@@ -208,7 +208,7 @@ int main(void)
   MX_ICACHE_Init();
   MX_LTDC_Init();
   MX_USB1_OTG_HS_HCD_Init();
-  MX_DCMIPP_Init();
+// MX_DCMIPP_Init();
   SystemIsolation_Config();
   /* USER CODE BEGIN 2 */
 

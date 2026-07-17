@@ -123,7 +123,11 @@ UINT USBD_STORAGE_Read(VOID *storage_instance, ULONG lun, UCHAR *data_pointer,
       Error_Handler();
     }
 
-    /* Start the Dma write */
+    /* The PC owns the card for the duration of this transfer, so the SD DMA
+       completion is routed to the USBX event flag rather than FileX. */
+    storage_set_state(STORAGE_USB_ATTACHED);
+
+    /* Start the DMA read */
     status =  HAL_SD_ReadBlocks_DMA(&hsd1, data_pointer, lba, number_blocks);
     if(status != HAL_OK)
     {
@@ -136,6 +140,8 @@ UINT USBD_STORAGE_Read(VOID *storage_instance, ULONG lun, UCHAR *data_pointer,
     {
       Error_Handler();
     }
+
+    storage_set_state(STORAGE_IDLE);
   }
 
   /* USER CODE END USBD_STORAGE_Read */
@@ -176,7 +182,11 @@ UINT USBD_STORAGE_Write(VOID *storage_instance, ULONG lun, UCHAR *data_pointer,
       Error_Handler();
     }
 
-    /* Start the Dma write */
+    /* The PC owns the card for the duration of this transfer, so the SD DMA
+       completion is routed to the USBX event flag rather than FileX. */
+    storage_set_state(STORAGE_USB_ATTACHED);
+
+    /* Start the DMA write */
     status = HAL_SD_WriteBlocks_DMA(&hsd1, data_pointer, lba, number_blocks);
 
     if(status != HAL_OK)
@@ -190,6 +200,8 @@ UINT USBD_STORAGE_Write(VOID *storage_instance, ULONG lun, UCHAR *data_pointer,
     {
       Error_Handler();
     }
+
+    storage_set_state(STORAGE_IDLE);
   }
 
   /* USER CODE END USBD_STORAGE_Write */
@@ -317,6 +329,22 @@ ULONG USBD_STORAGE_GetMediaBlocklength(VOID)
 }
 
 /* USER CODE BEGIN 1 */
+
+/* Storage ownership arbitration between the GUI (FileX) and the PC (USB MSC).
+   The SD DMA completion callbacks in fx_stm32_sd_driver_glue.c consult this to
+   decide whether to signal the FileX semaphore or the USBX event flag. State is
+   raised to STORAGE_USB_ATTACHED only for the duration of a USB MSC transfer. */
+static volatile storage_state_t usbx_storage_state = STORAGE_IDLE;
+
+storage_state_t storage_get_state(void)
+{
+  return usbx_storage_state;
+}
+
+void storage_set_state(storage_state_t state)
+{
+  usbx_storage_state = state;
+}
 
 /**
   * @brief  BSP_SD_WriteCpltCallback

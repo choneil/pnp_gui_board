@@ -36,7 +36,11 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+typedef enum
+{
+  STORAGE_IDLE = 0,       /* SD is free / owned by the GUI (FileX)       */
+  STORAGE_USB_ATTACHED    /* SD is owned by the PC over USB mass storage */
+} storage_state_t;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -69,7 +73,8 @@ ULONG USBD_STORAGE_GetMediaBlocklength(VOID);
 /* USER CODE BEGIN EFP */
 VOID usbx_sd_tx_complete(VOID);
 VOID usbx_sd_rx_complete(VOID);
-
+storage_state_t storage_get_state(void);
+void storage_set_state(storage_state_t state);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

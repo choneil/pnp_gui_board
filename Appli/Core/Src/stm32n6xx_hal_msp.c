@@ -141,38 +141,10 @@ void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc)
   * @param hdcmipp: DCMIPP handle pointer
   * @retval None
   */
-void HAL_DCMIPP_MspInit(DCMIPP_HandleTypeDef* hdcmipp)
-{
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
-  if(hdcmipp->Instance==DCMIPP)
-  {
-    /* USER CODE BEGIN DCMIPP_MspInit 0 */
-
-    /* USER CODE END DCMIPP_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_DCMIPP|RCC_PERIPHCLK_CSI;
-    PeriphClkInitStruct.DcmippClockSelection = RCC_DCMIPPCLKSOURCE_PCLK5;
-    PeriphClkInitStruct.ICSelection[RCC_IC18].ClockSelection = RCC_ICCLKSOURCE_PLL4;
-    PeriphClkInitStruct.ICSelection[RCC_IC18].ClockDivider = 1;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_DCMIPP_CLK_ENABLE();
-    __HAL_RCC_CSI_CLK_ENABLE();
-    __HAL_RCC_CSI_FORCE_RESET();
-    __HAL_RCC_CSI_RELEASE_RESET();
-    /* USER CODE BEGIN DCMIPP_MspInit 1 */
-
-    /* USER CODE END DCMIPP_MspInit 1 */
-
-  }
-
-}
+/* NOTE: HAL_DCMIPP_MspInit is defined later in this file with the full
+   IMX335 + CSI camera configuration (300 MHz kernel clock, CSI PHY clock,
+   sensor power sequence, NVIC). The default CubeMX stub that used to live
+   here was removed to avoid a duplicate definition. */
 
 /**
   * @brief DCMIPP MSP De-Initialization
@@ -793,13 +765,13 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
 
     RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USBOTGHS1;
-    PeriphClkInitStruct.UsbOtgHs1ClockSelection = RCC_USBPHY1REFCLKSOURCE_HSE_DIRECT;
+    PeriphClkInitStruct.UsbOtgHs1ClockSelection = RCC_USBPHY1CLKSOURCE_HSE_DIRECT;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
       Error_Handler();
     }
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USBPHY1;
-    PeriphClkInitStruct.UsbPhy1ClockSelection = RCC_USBPHY1REFCLKSOURCE_HSE_DIRECT;
+    PeriphClkInitStruct.UsbPhy1ClockSelection = RCC_USBPHY1CLKSOURCE_HSE_DIRECT;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
       Error_Handler();

@@ -63,6 +63,7 @@ LTDC_HandleTypeDef hltdc;
 HCD_HandleTypeDef hhcd_USB_OTG_HS1;
 
 /* USER CODE BEGIN PV */
+
 SD_HandleTypeDef hsd1;   /* microSD on SDMMC2 (CN13), used by FileX/USBX */
 PCD_HandleTypeDef hpcd_USB1_OTG_HS;          /* USB1 OTG HS (CN6), USBX MSC */
 HAL_SD_CardInfoTypeDef USBD_SD_CardInfo;     /* geometry for the MSC LUN    */
@@ -198,24 +199,32 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_HPDMA1_Init();
-  MX_JPEG_Init();
-  MX_CRC_Init();
-  MX_DMA2D_Init();
-  MX_GPU2D_Init();
-  MX_I2C2_Init();
-  MX_ICACHE_Init();
-  MX_LTDC_Init();
-  MX_USB1_OTG_HS_HCD_Init();
-// MX_DCMIPP_Init();
-  SystemIsolation_Config();
-  /* USER CODE BEGIN 2 */
+    MX_GPIO_Init();
+    MX_HPDMA1_Init();
+    MX_JPEG_Init();
+    MX_CRC_Init();
+    MX_DMA2D_Init();
+    MX_GPU2D_Init();
+    MX_I2C2_Init();
+    MX_ICACHE_Init();
+    MX_LTDC_Init();
+    MX_USB1_OTG_HS_HCD_Init();
+  // MX_DCMIPP_Init();
+    SystemIsolation_Config();
 
-  /* USER CODE END 2 */
+    /* USER CODE BEGIN 2 */
 
-  MX_ThreadX_Init();
+    // 1. Hard Reset the LCD Panel NOW that GPIO is initialized
+    HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_RESET);
+    HAL_Delay(20); // Hold low to reset
+    HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_SET);
+    HAL_Delay(120); // Wait for display to wake up
 
+
+
+    /* USER CODE END 2 */
+
+    MX_ThreadX_Init();
   /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
@@ -333,10 +342,10 @@ static void MX_DMA2D_Init(void)
   /* USER CODE END DMA2D_Init 1 */
   hdma2d.Instance = DMA2D;
   hdma2d.Init.Mode = DMA2D_M2M;
-  hdma2d.Init.ColorMode = DMA2D_OUTPUT_ARGB8888;
+  hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB565;
   hdma2d.Init.OutputOffset = 0;
   hdma2d.LayerCfg[1].InputOffset = 0;
-  hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB8888;
+  hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565;
   hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
   hdma2d.LayerCfg[1].InputAlpha = 0;
   if (HAL_DMA2D_Init(&hdma2d) != HAL_OK)
@@ -533,14 +542,14 @@ static void MX_LTDC_Init(void)
   hltdc.Init.VSPolarity = LTDC_VSPOLARITY_AL;
   hltdc.Init.DEPolarity = LTDC_DEPOLARITY_AL;
   hltdc.Init.PCPolarity = LTDC_PCPOLARITY_IPC;
-  hltdc.Init.HorizontalSync = 4;
-  hltdc.Init.VerticalSync = 4;
-  hltdc.Init.AccumulatedHBP = 12;
-  hltdc.Init.AccumulatedVBP = 12;
-  hltdc.Init.AccumulatedActiveW = 812;
-  hltdc.Init.AccumulatedActiveH = 492;
-  hltdc.Init.TotalWidth = 820;
-  hltdc.Init.TotalHeigh = 506;
+  hltdc.Init.HorizontalSync = 30;
+  hltdc.Init.VerticalSync = 13;
+  hltdc.Init.AccumulatedHBP = 76;   // HSYNC(30) + HBP(46)
+  hltdc.Init.AccumulatedVBP = 36;   // VSYNC(13) + VBP(23)
+  hltdc.Init.AccumulatedActiveW = 876; // AccHBP(76) + 800
+  hltdc.Init.AccumulatedActiveH = 516; // AccVBP(36) + 480
+  hltdc.Init.TotalWidth = 1086;     // AccActiveW(876) + HFP(210)
+  hltdc.Init.TotalHeigh = 538;      // AccActiveH(516) + VFP(22)
   hltdc.Init.Backcolor.Blue = 0;
   hltdc.Init.Backcolor.Green = 0;
   hltdc.Init.Backcolor.Red = 0;
@@ -557,7 +566,7 @@ static void MX_LTDC_Init(void)
   pLayerCfg.Alpha0 = 0;
   pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
   pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
-  pLayerCfg.FBStartAdress = 0;
+  pLayerCfg.FBStartAdress = 0x34200000;
   pLayerCfg.ImageWidth = 800;
   pLayerCfg.ImageHeight = 480;
   pLayerCfg.Backcolor.Blue = 0;
@@ -865,6 +874,15 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void LTDC_IRQHandler(void)
+{
+  HAL_LTDC_IRQHandler(&hltdc);
+}
+
+void DMA2D_IRQHandler(void)
+{
+  HAL_DMA2D_IRQHandler(&hdma2d);
+}
 
 static void Enable_NPU_RAM_ForCore(void)
 {    

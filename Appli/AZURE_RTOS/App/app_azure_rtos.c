@@ -151,7 +151,7 @@ VOID tx_application_define(VOID *first_unused_memory)
     if (status != FX_SUCCESS)
     {
       /* USER CODE BEGIN  MX_FileX_Init_Error */
-      while(1)
+
       {
       }
       /* USER CODE END  MX_FileX_Init_Error */
@@ -178,7 +178,7 @@ VOID tx_application_define(VOID *first_unused_memory)
     if (status != UX_SUCCESS)
     {
       /* USER CODE BEGIN  MX_USBX_Init_Error */
-      while(1)
+
       {
       }
       /* USER CODE END  MX_USBX_Init_Error */

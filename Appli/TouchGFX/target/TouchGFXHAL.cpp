@@ -39,6 +39,7 @@ void TouchGFXHAL::initialize()
     // Please note, HAL::initialize() must be called to initialize the framework.
 
     TouchGFXGeneratedHAL::initialize();
+    setFrameBufferStartAddresses((void*)0x34200000, (void*)0, (void*)0);
 #ifdef TX_EXECUTION_PROFILE_ENABLE
     instrumentation.init();
     setMCUInstrumentation(&instrumentation);

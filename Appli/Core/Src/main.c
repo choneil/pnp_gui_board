@@ -46,6 +46,8 @@
 
 CRC_HandleTypeDef hcrc;
 
+DCMIPP_HandleTypeDef hdcmipp;
+
 DMA2D_HandleTypeDef hdma2d;
 
 GPU2D_HandleTypeDef hgpu2d;
@@ -57,6 +59,8 @@ DMA_HandleTypeDef handle_HPDMA1_Channel1;
 DMA_HandleTypeDef handle_HPDMA1_Channel0;
 
 LTDC_HandleTypeDef hltdc;
+
+HCD_HandleTypeDef hhcd_USB_OTG_HS1;
 
 /* USER CODE BEGIN PV */
 SD_HandleTypeDef hsd1;   /* microSD on SDMMC2 (CN13), used by FileX/USBX */
@@ -75,6 +79,8 @@ static void MX_GPU2D_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_ICACHE_Init(void);
 static void MX_LTDC_Init(void);
+static void MX_USB1_OTG_HS_HCD_Init(void);
+static void MX_DCMIPP_Init(void);
 static void SystemIsolation_Config(void);
 /* USER CODE BEGIN PFP */
 static void Enable_NPU_RAM_ForCore(void);
@@ -201,9 +207,9 @@ int main(void)
   MX_I2C2_Init();
   MX_ICACHE_Init();
   MX_LTDC_Init();
+  MX_USB1_OTG_HS_HCD_Init();
+  MX_DCMIPP_Init();
   SystemIsolation_Config();
-  /* Call PreOsInit function */
-  MX_TouchGFX_PreOSInit();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -218,6 +224,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
+  MX_TouchGFX_Process();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -251,6 +258,61 @@ static void MX_CRC_Init(void)
   /* USER CODE BEGIN CRC_Init 2 */
 
   /* USER CODE END CRC_Init 2 */
+
+}
+
+/**
+  * @brief DCMIPP Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_DCMIPP_Init(void)
+{
+
+  /* USER CODE BEGIN DCMIPP_Init 0 */
+
+  /* USER CODE END DCMIPP_Init 0 */
+
+  DCMIPP_CSI_PIPE_ConfTypeDef pCSI_PipeConfig = {0};
+  DCMIPP_CSI_ConfTypeDef pCSI_Config = {0};
+  DCMIPP_PipeConfTypeDef pPipeConfig = {0};
+
+  /* USER CODE BEGIN DCMIPP_Init 1 */
+
+  /* USER CODE END DCMIPP_Init 1 */
+  hdcmipp.Instance = DCMIPP;
+  if (HAL_DCMIPP_Init(&hdcmipp) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Pipe 0 Config
+  */
+  pCSI_PipeConfig.DataTypeMode = DCMIPP_DTMODE_DTIDA;
+  pCSI_PipeConfig.DataTypeIDA = DCMIPP_DT_YUV420_8;
+  pCSI_PipeConfig.DataTypeIDB = DCMIPP_DT_YUV420_8;
+  if (HAL_DCMIPP_CSI_PIPE_SetConfig(&hdcmipp, DCMIPP_PIPE0, &pCSI_PipeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  pCSI_Config.PHYBitrate = DCMIPP_CSI_PHY_BT_80;
+  pCSI_Config.DataLaneMapping = DCMIPP_CSI_PHYSICAL_DATA_LANES;
+  pCSI_Config.NumberOfLanes = DCMIPP_CSI_ONE_DATA_LANE;
+  if (HAL_DCMIPP_CSI_SetConfig(&hdcmipp, &pCSI_Config) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  pPipeConfig.FrameRate = DCMIPP_FRAME_RATE_ALL;
+  pPipeConfig.PixelPipePitch = 10;
+  pPipeConfig.PixelPackerFormat = DCMIPP_PIXEL_PACKER_FORMAT_RGB888_YUV444_1;
+  if (HAL_DCMIPP_PIPE_SetConfig(&hdcmipp, DCMIPP_PIPE0, &pPipeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  HAL_DCMIPP_CSI_SetVCConfig(&hdcmipp, 0U, DCMIPP_CSI_DT_BPP6);
+  /* USER CODE BEGIN DCMIPP_Init 2 */
+
+  /* USER CODE END DCMIPP_Init 2 */
 
 }
 
@@ -525,20 +587,21 @@ static void MX_LTDC_Init(void)
 
   /* set all required IPs as secure privileged */
   __HAL_RCC_RIFSC_CLK_ENABLE();
-  RIMC_MasterConfig_t RIMC_master = {0};
-  RIMC_master.MasterCID = RIF_CID_1;
-  RIMC_master.SecPriv = RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV;
 
   /*RIMC configuration*/
+  RIMC_MasterConfig_t RIMC_master = {0};
+  RIMC_master.MasterCID = RIF_CID_1;
+  RIMC_master.SecPriv = RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_NPRIV;
+  HAL_RIF_RIMC_ConfigMasterAttributes(RIF_MASTER_INDEX_DCMIPP, &RIMC_master);
+
+  RIMC_master.SecPriv = RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV;
   HAL_RIF_RIMC_ConfigMasterAttributes(RIF_MASTER_INDEX_DMA2D, &RIMC_master);
+
   HAL_RIF_RIMC_ConfigMasterAttributes(RIF_MASTER_INDEX_GPU2D, &RIMC_master);
+
   HAL_RIF_RIMC_ConfigMasterAttributes(RIF_MASTER_INDEX_LTDC1, &RIMC_master);
-  HAL_RIF_RIMC_ConfigMasterAttributes(RIF_MASTER_INDEX_SDMMC2, &RIMC_master);
-  HAL_RIF_RIMC_ConfigMasterAttributes(RIF_MASTER_INDEX_OTG1, &RIMC_master);
 
   /*RISUP configuration*/
-  HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_SDMMC2 , RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV);
-  HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_OTG1HS , RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV);
   HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_I2C2 , RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV);
   HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_TIM2 , RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV);
   HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_CRC , RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV);
@@ -647,6 +710,41 @@ static void MX_LTDC_Init(void)
   /* USER CODE BEGIN RIF_Init 2 */
 
   /* USER CODE END RIF_Init 2 */
+
+}
+
+/**
+  * @brief USB1_OTG_HS Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USB1_OTG_HS_HCD_Init(void)
+{
+
+  /* USER CODE BEGIN USB1_OTG_HS_Init 0 */
+
+  /* USER CODE END USB1_OTG_HS_Init 0 */
+
+  /* USER CODE BEGIN USB1_OTG_HS_Init 1 */
+
+  /* USER CODE END USB1_OTG_HS_Init 1 */
+  hhcd_USB_OTG_HS1.Instance = USB1_OTG_HS;
+  hhcd_USB_OTG_HS1.Init.dev_endpoints = 9;
+  hhcd_USB_OTG_HS1.Init.Host_channels = 16;
+  hhcd_USB_OTG_HS1.Init.speed = HCD_SPEED_HIGH;
+  hhcd_USB_OTG_HS1.Init.dma_enable = DISABLE;
+  hhcd_USB_OTG_HS1.Init.phy_itface = USB_OTG_HS_EMBEDDED_PHY;
+  hhcd_USB_OTG_HS1.Init.Sof_enable = DISABLE;
+  hhcd_USB_OTG_HS1.Init.low_power_enable = DISABLE;
+  hhcd_USB_OTG_HS1.Init.vbus_sensing_enable = DISABLE;
+  hhcd_USB_OTG_HS1.Init.use_external_vbus = ENABLE;
+  if (HAL_HCD_Init(&hhcd_USB_OTG_HS1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USB1_OTG_HS_Init 2 */
+
+  /* USER CODE END USB1_OTG_HS_Init 2 */
 
 }
 

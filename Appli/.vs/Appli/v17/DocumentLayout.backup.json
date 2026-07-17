@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\TouchGFXProjects\\PNP_GUI_board\\Appli\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\TouchGFXProjects\\PNP_GUI_board\\Appli\\TouchGFX\\gui\\src\\home_screen\\HomeView.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:TouchGFX\\gui\\src\\home_screen\\HomeView.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\TouchGFXProjects\\PNP_GUI_board\\Appli\\TouchGFX\\gui\\src\\common\\FrontendApplication.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:TouchGFX\\gui\\src\\common\\FrontendApplication.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FrontendApplication.cpp",
+              "DocumentMoniker": "C:\\TouchGFXProjects\\PNP_GUI_board\\Appli\\TouchGFX\\gui\\src\\common\\FrontendApplication.cpp",
+              "RelativeDocumentMoniker": "TouchGFX\\gui\\src\\common\\FrontendApplication.cpp",
+              "ToolTip": "C:\\TouchGFXProjects\\PNP_GUI_board\\Appli\\TouchGFX\\gui\\src\\common\\FrontendApplication.cpp",
+              "RelativeToolTip": "TouchGFX\\gui\\src\\common\\FrontendApplication.cpp",
+              "ViewState": "AgIAABUAAAAAAAAAAAAiwDUAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-07-16T18:44:35.609Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "HomeView.cpp",
+              "DocumentMoniker": "C:\\TouchGFXProjects\\PNP_GUI_board\\Appli\\TouchGFX\\gui\\src\\home_screen\\HomeView.cpp",
+              "RelativeDocumentMoniker": "TouchGFX\\gui\\src\\home_screen\\HomeView.cpp",
+              "ToolTip": "C:\\TouchGFXProjects\\PNP_GUI_board\\Appli\\TouchGFX\\gui\\src\\home_screen\\HomeView.cpp",
+              "RelativeToolTip": "TouchGFX\\gui\\src\\home_screen\\HomeView.cpp",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAACsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-07-16T18:44:17.881Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -159,7 +159,6 @@
    particular implementation of USBX needs the hub class, the printer class, and the storage
    class, then the UX_MAX_CLASSES value can be set to 3 regardless of the number of devices
    that belong to these classes.  */
-
 /* #define UX_MAX_CLASSES    2 */
 
 /* #define UX_MAX_CLASS_DRIVER    3 */
@@ -201,20 +200,20 @@
 /* Defined, this value represents the maximum number of bytes received on a control endpoint in
    the device stack. The default is 256 bytes but can be reduced in memory constrained environments.  */
 
-/* #define UX_SLAVE_REQUEST_CONTROL_MAX_LENGTH                 256 */
+/* #define UX_SLAVE_REQUEST_CONTROL_MAX_LENGTH              256 */
 
 /* Defined, this value represents the endpoint buffer owner.
    0 - The default, endpoint buffer is managed by core stack. Each endpoint takes UX_SLAVE_REQUEST_DATA_MAX_LENGTH bytes.
    1 - Endpoint buffer managed by classes. In this case not all endpoints consume UX_SLAVE_REQUEST_DATA_MAX_LENGTH bytes.  */
 
-/* #define UX_DEVICE_ENDPOINT_BUFFER_OWNER              0 */
+/* #define UX_DEVICE_ENDPOINT_BUFFER_OWNER      0 */
 
 /* Defined, it enables device CDC ACM zero copy for bulk in/out endpoints (write/read).
    Enabled, the endpoint buffer is not allocated in class, application must provide the buffer for read/write,
    and the buffer must meet device controller driver (DCD) buffer requirements (e.g., aligned and cache safe).
    It only works if  UX_DEVICE_ENDPOINT_BUFFER_OWNER is 1 (endpoint buffer managed by class).  */
 
-/* #define UX_DEVICE_CLASS_CDC_ACM_ZERO_COPY */
+/* #define UX_DEVICE_CLASS_CDC_ACM_ZERO_COPY  */
 
 /* Defined, it enables device HID zero copy and flexible queue support (works if HID owns endpoint buffer).
     Enabled, the internal queue buffer is directly used for transfer, the APIs are kept to keep
@@ -227,19 +226,19 @@
     UX_DEVICE_CLASS_HID_MAX_EVENTS_QUEUE and UX_DEVICE_CLASS_HID_EVENT_BUFFER_LENGTH are used to
     calculate and allocate the queue.  */
 
-/* #define UX_DEVICE_CLASS_HID_ZERO_COPY */
+/* #define UX_DEVICE_CLASS_HID_ZERO_COPY  */
 
 /* Defined, it enables device CDC_ECM zero copy support (works if CDC_ECM owns endpoint buffer).
     Enabled, it requires that the NX IP default packet pool is in cache safe area, and buffer max
     size is larger than UX_DEVICE_CLASS_CDC_ECM_ETHERNET_PACKET_SIZE (1536).  */
 
-/* #define UX_DEVICE_CLASS_CDC_ECM_ZERO_COPY */
+/* #define UX_DEVICE_CLASS_CDC_ECM_ZERO_COPY  */
 
 /* Defined, it enables device RNDIS zero copy support (works if RNDIS owns endpoint buffer).
     Enabled, it requires that the NX IP default packet pool is in cache safe area, and buffer max
     size is larger than UX_DEVICE_CLASS_RNDIS_MAX_PACKET_TRANSFER_SIZE (1600).  */
 
-/* #define UX_DEVICE_CLASS_RNDIS_ZERO_COPY */
+/* #define UX_DEVICE_CLASS_RNDIS_ZERO_COPY  */
 
 /* Defined, it enables zero copy support (works if PRINTER owns endpoint buffer).
     Defined, it enables zero copy for bulk in/out endpoints (write/read). In this case, the endpoint
@@ -247,22 +246,20 @@
     buffer must meet device controller driver (DCD) buffer requirements (e.g., aligned and cache
     safe if buffer is for DMA).  */
 
-/* #define UX_DEVICE_CLASS_PRINTER_ZERO_COPY */
+/* #define UX_DEVICE_CLASS_PRINTER_ZERO_COPY  */
 
 /* Defined, this value represents the maximum number of bytes that can be received or transmitted
    on any endpoint. This value cannot be less than the maximum packet size of any endpoint. The default
    is 2048 bytes but can be reduced in memory constrained environments. For cd-rom support in the storage
    class, this value cannot be less than 2048.  */
 
-#define UX_SLAVE_REQUEST_DATA_MAX_LENGTH                    1024
+/* #define UX_SLAVE_REQUEST_DATA_MAX_LENGTH                 2048 */
 
-/* Defined, it enables zero copy support (works if PRINTER owns endpoint buffer).
-    Defined, it enables zero copy for bulk in/out endpoints (write/read). In this case, the endpoint
-    buffer is not allocated in class, application must provide the buffer for read/write, and the
-    buffer must meet device controller driver (DCD) buffer requirements (e.g., aligned and cache
-    safe if buffer is for DMA).  */
+/* Defined, this enables processing of Get String Descriptor requests with zero Language ID.
+   The first language ID in the language ID framework will be used if the request has a zero
+   Language ID.  */
 
-/* #define UX_DEVICE_ENABLE_GET_STRING_WITH_ZERO_LANGUAGE_ID */
+/* #define UX_DEVICE_ENABLE_GET_STRING_WITH_ZERO_LANGUAGE_ID  */
 
 /* Defined, this value includes code to handle storage Multi-Media Commands (MMC). E.g., DVD-ROM. */
 
@@ -386,7 +383,6 @@
 /* Defined, this value represents the the maximum length of HID reports on the
    device.
  */
-
 /* #define UX_DEVICE_CLASS_HID_EVENT_BUFFER_LENGTH          64 */
 
 /* Defined, this value represents the the maximum number of HID events/reports
@@ -401,7 +397,7 @@
 
 /* Defined, this macro will enable DFU_GETSTATUS and DFU_GETSTATE in dfuERROR.  */
 
-/* #define UX_DEVICE_CLASS_DFU_ERROR_GET_ENABLE */
+/* #define UX_DEVICE_CLASS_DFU_ERROR_GET_ENABLE  */
 
 /* Defined, this macro will change status mode.
    0 - simple mode,
@@ -414,29 +410,28 @@
        bwPollTimeout supported.
 */
 
-/* #define UX_DEVICE_CLASS_DFU_STATUS_MODE                     1 */
+/* #define UX_DEVICE_CLASS_DFU_STATUS_MODE                  1 */
 
 /* Defined, this value represents the default DFU status bwPollTimeout.
    The value is 3 bytes long (max 0xFFFFFFu).
    By default the bwPollTimeout is 1 (means 1ms).
  */
 
-/* #define UX_DEVICE_CLASS_DFU_STATUS_POLLTIMEOUT              1 */
+/* #define UX_DEVICE_CLASS_DFU_STATUS_POLLTIMEOUT           1 */
 
 /* Defined, this macro will enable custom request process callback.  */
 
-/* #define UX_DEVICE_CLASS_DFU_CUSTOM_REQUEST_ENABLE */
+/* #define UX_DEVICE_CLASS_DFU_CUSTOM_REQUEST_ENABLE  */
 
 /* Defined, this macro disables CDC ACM non-blocking transmission support. */
 
 /* #define UX_DEVICE_CLASS_CDC_ACM_TRANSMISSION_DISABLE */
 
-/* defined, this macro enables device audio feedback endpoint support.  */
+/* Defined, this macro enables device audio feedback endpoint support.  */
 
 /* #define UX_DEVICE_CLASS_AUDIO_FEEDBACK_SUPPORT  */
 
-/* defined, this macro enables device audio interrupt endpoint support.  */
-
+/* Defined, this macro enables device audio interrupt endpoint support.  */
 /* #define UX_DEVICE_CLASS_AUDIO_INTERRUPT_SUPPORT  */
 
 /* Defined, class _write is pending ZLP automatically (complete transfer) after buffer is sent.  */
@@ -451,7 +446,7 @@
 
 /* Defined, this macro enables device bi-directional endpoint support. */
 
-#define UX_DEVICE_BIDIRECTIONAL_ENDPOINT_SUPPORT
+/* #define UX_DEVICE_BIDIRECTIONAL_ENDPOINT_SUPPORT */
 
 /* Defined, this macro disables interface alternate setting support.
    Device stalls
@@ -463,6 +458,7 @@
    interfaces and endpoints structures and their buffers.
    Undefined, the following two macros must be defined to initialize memory structures.
  */
+
 /* #define UX_DEVICE_INITIALIZE_FRAMEWORK_SCAN_DISABLE */
 
 /* Defined, host HID interrupt OUT transfer is supported.  */
@@ -470,6 +466,7 @@
 /* #define UX_HOST_CLASS_HID_INTERRUPT_OUT_SUPPORT  */
 
 /* Defined, this macro enables device/host PIMA MTP support.  */
+
 /* #define UX_PIMA_WITH_MTP_SUPPORT */
 
 /* Defined, this macro enables host device class code validation.
@@ -479,10 +476,6 @@
  */
 
 /* #define UX_HOST_DEVICE_CLASS_CODE_VALIDATION_ENABLE  */
-
-/* Defined, host HID interrupt OUT transfer is supported.  */
-
-/* #define UX_HOST_CLASS_HID_INTERRUPT_OUT_SUPPORT  */
 
 /* Define HID report transfer timeout value in millisecond.
    The default is 10000 milliseconds.  */
@@ -514,20 +507,15 @@
 /* #define UX_NAME_REFERENCED_BY_POINTER  */
 
 /* Defined, this value will only enable the host side of usbx.  */
-
-/* #define UX_HOST_SIDE_ONLY */
+#define UX_HOST_SIDE_ONLY
 
 /* Defined, this value will only enable the device side of usbx.  */
-#define UX_DEVICE_SIDE_ONLY
-
+/* #define UX_DEVICE_SIDE_ONLY */
 /* Defined, this value will include the OTG polling thread. OTG can only be active if both host/device are present.
 */
-
 #ifndef UX_HOST_SIDE_ONLY
 #ifndef UX_DEVICE_SIDE_ONLY
-
 /* #define UX_OTG_SUPPORT */
-
 #endif
 #endif
 
@@ -625,13 +613,11 @@
 
 /* Defined, this option enables the basic USBX error checking. This define is typically used
    when the application is debugging and removed after the application is fully debugged.  */
-/*
-#define UX_ENABLE_ERROR_CHECKING
-*/
+
+/* #define UX_ENABLE_ERROR_CHECKING */
 
 /* USER CODE BEGIN 2 */
 
 /* USER CODE END 2 */
 
 #endif
-

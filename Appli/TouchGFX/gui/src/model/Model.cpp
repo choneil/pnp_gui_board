@@ -1,12 +1,6 @@
 #include <gui/model/Model.hpp>
 #include <gui/model/ModelListener.hpp>
 
-#ifndef SIMULATOR
-extern "C" {
-#include "app_filex.h"
-}
-#endif
-
 namespace
 {
 float clampf(float value, float lo, float hi)
@@ -70,38 +64,22 @@ const int STUB_COUNT = sizeof(STUB_FILES) / sizeof(STUB_FILES[0]);
 
 int Model::getStorageState() const
 {
-#ifndef SIMULATOR
-    return (int)storage_get_state();
-#else
-    return 1;
-#endif
+    return 1;  // simulator: always "mounted"
 }
 
 int Model::getFileCount() const
 {
-#ifndef SIMULATOR
-    return (int)storage_get_file_count();
-#else
     return STUB_COUNT;
-#endif
 }
 
 const char* Model::getFileName(int i) const
 {
-#ifndef SIMULATOR
-    return storage_get_file_name((UINT)i);
-#else
     return (i >= 0 && i < STUB_COUNT) ? STUB_FILES[i].name : "";
-#endif
 }
 
 uint32_t Model::getFileSize(int i) const
 {
-#ifndef SIMULATOR
-    return (uint32_t)storage_get_file_size((UINT)i);
-#else
     return (i >= 0 && i < STUB_COUNT) ? STUB_FILES[i].size : 0;
-#endif
 }
 
 void Model::tick()

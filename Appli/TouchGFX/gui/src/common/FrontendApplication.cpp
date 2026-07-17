@@ -44,3 +44,14 @@ void FrontendApplication::gotoFilesImpl()
 {
     touchgfx::makeTransition<FilesView, FilesPresenter, touchgfx::SlideTransition<touchgfx::WEST>, Model >(&currentScreen, &currentPresenter, frontendHeap, &currentTransition, &model);
 }
+
+void FrontendApplication::requestCamera()
+{
+    navCallbackFA = touchgfx::Callback<FrontendApplication>(this, &FrontendApplication::gotoCameraImpl);
+    pendingScreenTransitionCallback = &navCallbackFA;
+}
+
+void FrontendApplication::gotoCameraImpl()
+{
+    touchgfx::makeTransition<CameraView, CameraPresenter, touchgfx::SlideTransition<touchgfx::WEST>, Model >(&currentScreen, &currentPresenter, frontendHeap, &currentTransition, &model);
+}

@@ -192,9 +192,9 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_mutex_delete.c
 	${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_mutex_off.c
 	${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_mutex_on.c
-	${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_pci_class_scan.c
-	${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_pci_read.c
-	${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_pci_write.c
+	# ${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_pci_class_scan.c
+	# ${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_pci_read.c
+	# ${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_pci_write.c
 	${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_physical_address.c
 	${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_semaphore_create.c
 	${CMAKE_CURRENT_LIST_DIR}/src/ux_utility_semaphore_delete.c

@@ -32,9 +32,13 @@ void HomeView::onCard(const NavCard& card, const touchgfx::ClickEvent& event)
         {
             app->requestMachine();
         }
-        else
+        else if(&card == &navCardLoadFile)
         {
             app->requestFiles();
+        }
+        else
+        {
+            app->requestCamera();
         }
     }
 }

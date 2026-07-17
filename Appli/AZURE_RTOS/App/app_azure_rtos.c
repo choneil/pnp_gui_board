@@ -20,9 +20,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "app_azure_rtos.h"
-#include "app_filex.h"
-#include "app_usbx_device.h"
-#include "app_camera.h"
 #include "app_touchgfx.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -58,6 +55,22 @@
 #endif
 __ALIGN_BEGIN static UCHAR tx_byte_pool_buffer[TX_APP_MEM_POOL_SIZE] __ALIGN_END;
 static TX_BYTE_POOL tx_app_byte_pool;
+
+/* USER CODE BEGIN FX_Pool_Buffer */
+/* USER CODE END FX_Pool_Buffer */
+#if defined ( __ICCARM__ )
+#pragma data_alignment=4
+#endif
+__ALIGN_BEGIN static UCHAR  fx_byte_pool_buffer[FX_APP_MEM_POOL_SIZE] __ALIGN_END;
+static TX_BYTE_POOL fx_app_byte_pool;
+
+/* USER CODE BEGIN UX_Pool_Buffer */
+/* USER CODE END UX_Pool_Buffer */
+#if defined ( __ICCARM__ )
+#pragma data_alignment=4
+#endif
+__ALIGN_BEGIN static UCHAR ux_byte_pool_buffer[UX_APP_MEM_POOL_SIZE] __ALIGN_END;
+static TX_BYTE_POOL ux_app_byte_pool;
 
 /* USER CODE BEGIN TouchGFX_Pool_Buffer */
 
@@ -120,7 +133,59 @@ VOID tx_application_define(VOID *first_unused_memory)
     /* USER CODE END  App_ThreadX_Init_Success */
 
   }
+  if (tx_byte_pool_create(&fx_app_byte_pool, "Fx App memory pool", fx_byte_pool_buffer, FX_APP_MEM_POOL_SIZE) != TX_SUCCESS)
+  {
+    /* USER CODE BEGIN FX_Byte_Pool_Error */
 
+    /* USER CODE END FX_Byte_Pool_Error */
+  }
+  else
+  {
+    /* USER CODE BEGIN FX_Byte_Pool_Success */
+
+    /* USER CODE END FX_Byte_Pool_Success */
+
+    memory_ptr = (VOID *)&fx_app_byte_pool;
+    status = MX_FileX_Init(memory_ptr);
+    if (status != FX_SUCCESS)
+    {
+      /* USER CODE BEGIN  MX_FileX_Init_Error */
+      while(1)
+      {
+      }
+      /* USER CODE END  MX_FileX_Init_Error */
+    }
+    /* USER CODE BEGIN  MX_FileX_Init_Success */
+
+    /* USER CODE END  MX_FileX_Init_Success */
+  }
+
+  if (tx_byte_pool_create(&ux_app_byte_pool, "Ux App memory pool", ux_byte_pool_buffer, UX_APP_MEM_POOL_SIZE) != TX_SUCCESS)
+  {
+    /* USER CODE BEGIN UX_Byte_Pool_Error */
+
+	/* USER CODE END UX_Byte_Pool_Error */
+  }
+  else
+  {
+    /* USER CODE BEGIN UX_Byte_Pool_Success */
+
+    /* USER CODE END UX_Byte_Pool_Success */
+
+    memory_ptr = (VOID *)&ux_app_byte_pool;
+    status = MX_USBX_Init(memory_ptr);
+    if (status != UX_SUCCESS)
+    {
+      /* USER CODE BEGIN  MX_USBX_Init_Error */
+      while(1)
+      {
+      }
+      /* USER CODE END  MX_USBX_Init_Error */
+    }
+    /* USER CODE BEGIN  MX_USBX_Init_Success */
+
+    /* USER CODE END  MX_USBX_Init_Success */
+  }
     if (tx_byte_pool_create(&touchgfx_app_byte_pool, "TouchGFX App memory pool", touchgfx_byte_pool_buffer, TOUCHGFX_APP_MEM_POOL_SIZE) != TX_SUCCESS)
     {
         /* USER CODE BEGIN TouchGFX_Byte_Pool_Error */

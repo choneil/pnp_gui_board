@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\TouchGFX",
+    "\\TouchGFX\\build\\MINGW32_NT-6.2",
+    "\\TouchGFX\\build\\MINGW32_NT-6.2\\generated",
+    "\\TouchGFX\\build\\MINGW32_NT-6.2\\generated\\fonts",
+    "\\TouchGFX\\build\\MINGW32_NT-6.2\\generated\\fonts\\src",
+    "\\TouchGFX\\gui",
+    "\\TouchGFX\\gui\\include",
+    "\\TouchGFX\\gui\\include\\gui",
+    "\\TouchGFX\\gui\\include\\gui\\common"
+  ],
+  "SelectedNode": "\\TouchGFX",
+  "PreviewInSolutionExplorer": false
+}

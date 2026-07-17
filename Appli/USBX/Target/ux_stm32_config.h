@@ -30,11 +30,12 @@ extern "C" {
 
 /* USER CODE BEGIN Private Includes */
 
-/* USER CODE BEGIN Private Includes */
+/* USER CODE END Private Includes */
 
 /* Private defines -----------------------------------------------------------*/
 
 #define UX_DCD_STM32_MAX_ED                   9
+#define UX_HCD_STM32_MAX_NB_CHANNELS          16
 
 /* USER CODE BEGIN Private defines */
 
@@ -48,3 +49,4 @@ extern "C" {
 }
 #endif
 #endif  /* __UX_STM32_CONFIG_H__ */
+

@@ -27,12 +27,13 @@ public:
     void requestHome();
     void requestMachine();
     void requestFiles();
-
+    void requestCamera();
 private:
     touchgfx::Callback<FrontendApplication> navCallbackFA;
     void gotoHomeImpl();
     void gotoMachineImpl();
     void gotoFilesImpl();
+    void gotoCameraImpl();
 };
 
 #endif // FRONTENDAPPLICATION_HPP

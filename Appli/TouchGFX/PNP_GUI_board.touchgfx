@@ -38,7 +38,7 @@
             "Type": "CustomContainerInstance",
             "Name": "navCardMachine",
             "X": 75,
-            "Y": 160,
+            "Y": 110,
             "Width": 305,
             "Height": 170,
             "CustomContainerDefinitionName": "NavCard",
@@ -48,41 +48,27 @@
             "Type": "CustomContainerInstance",
             "Name": "navCardLoadFile",
             "X": 420,
-            "Y": 160,
+            "Y": 110,
             "Width": 305,
             "Height": 170,
             "CustomContainerDefinitionName": "NavCard",
             "Clickable": true
           },
           {
-            "Type": "Button",
-            "Name": "machineButton",
-            "X": 75,
-            "Y": 160,
+            "Type": "CustomContainerInstance",
+            "Name": "navCardCamera",
+            "X": 247,
+            "Y": 300,
             "Width": 305,
             "Height": 170,
-            "Visible": false,
-            "Pressed": "Main_room_button_bg_clean 1.png",
-            "Released": "Main_room_button_bg_clean 1.png"
-          },
-          {
-            "Type": "Button",
-            "Name": "loadFilesButton",
-            "X": 420,
-            "Y": 160,
-            "Width": 305,
-            "Height": 170,
-            "Visible": false,
-            "Pressed": "Main_room_button_bg_clean 1.png",
-            "Released": "Main_room_button_bg_clean 1.png"
+            "CustomContainerDefinitionName": "NavCard"
           }
         ],
         "Interactions": [
           {
             "InteractionName": "Interaction2",
             "Trigger": {
-              "Type": "TriggerClicked",
-              "TriggerComponent": "machineButton"
+              "Type": "TriggerClicked"
             },
             "Action": {
               "Type": "ActionGotoScreen",
@@ -93,8 +79,7 @@
           {
             "InteractionName": "Interaction3",
             "Trigger": {
-              "Type": "TriggerClicked",
-              "TriggerComponent": "loadFilesButton"
+              "Type": "TriggerClicked"
             },
             "Action": {
               "Type": "ActionGotoScreen",
@@ -214,6 +199,30 @@
             "Name": "navBtnBackF",
             "X": 674,
             "Y": 422,
+            "Width": 90,
+            "Height": 40,
+            "CustomContainerDefinitionName": "NavButton"
+          }
+        ],
+        "Interactions": []
+      },
+      {
+        "Name": "Camera",
+        "Components": [
+          {
+            "Type": "CustomContainerInstance",
+            "Name": "navBtnCapture",
+            "X": 355,
+            "Y": 428,
+            "Width": 90,
+            "Height": 40,
+            "CustomContainerDefinitionName": "NavButton"
+          },
+          {
+            "Type": "CustomContainerInstance",
+            "Name": "navBtnBackCam",
+            "X": 8,
+            "Y": 428,
             "Width": 90,
             "Height": 40,
             "CustomContainerDefinitionName": "NavButton"

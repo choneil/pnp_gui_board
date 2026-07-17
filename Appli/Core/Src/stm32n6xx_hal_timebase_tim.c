@@ -41,8 +41,8 @@ TIM_HandleTypeDef        htim2;
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
   RCC_ClkInitTypeDef    clkconfig;
-  uint32_t              uwTimclock = 0;
-  uint32_t              uwPrescalerValue = 0;
+  uint32_t              uwTimclock;
+  uint32_t              uwPrescalerValue;
 
   /*Configure the TIM2 IRQ priority */
   HAL_NVIC_SetPriority(TIM2_IRQn, TickPriority ,0);
@@ -52,11 +52,11 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   /* Enable TIM2 clock */
   __HAL_RCC_TIM2_CLK_ENABLE();
 
+  /* Compute TIM2 clock */
+  uwTimclock = HAL_RCCEx_GetTIMGFreq();
+
   /* Get clock configuration */
   HAL_RCC_GetClockConfig(&clkconfig);
-
-  /* Compute TIM2 clock */
-  uwTimclock = HAL_RCC_GetPCLK1Freq();
 
   /* Compute the prescaler value to have TIM2 counter clock equal to 1MHz */
   uwPrescalerValue = (uint32_t) ((uwTimclock / 1000000U) - 1U);
@@ -77,6 +77,11 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 
   if(HAL_TIM_Base_Init(&htim2) == HAL_OK)
   {
+#if (USE_HAL_TIM_REGISTER_CALLBACKS == 1U)
+      /* Register callback */
+      HAL_TIM_RegisterCallback(&htim2, HAL_TIM_PERIOD_ELAPSED_CB_ID, TimeBase_TIM_PeriodElapsedCallback);
+#endif /* USE_HAL_TIM_REGISTER_CALLBACKS */
+
     /* Start the TIM time Base generation in interrupt mode */
     return HAL_TIM_Base_Start_IT(&htim2);
   }

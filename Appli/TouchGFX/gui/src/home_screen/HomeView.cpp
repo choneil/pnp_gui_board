@@ -14,6 +14,8 @@ void HomeView::setupScreen()
     navCardMachine.setClickAction(cardCallback);
     navCardLoadFile.setLabel("LOAD FILE");
     navCardLoadFile.setClickAction(cardCallback);
+    navCardCamera.setLabel("CAMERA");
+    navCardCamera.setClickAction(cardCallback);
 }
 
 void HomeView::tearDownScreen()

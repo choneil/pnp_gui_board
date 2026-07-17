@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\Appli",
+    "\\Appli\\TouchGFX",
+    "\\Appli\\TouchGFX\\gui",
+    "\\Appli\\TouchGFX\\gui\\include",
+    "\\Appli\\TouchGFX\\gui\\include\\gui",
+    "\\Appli\\TouchGFX\\gui\\include\\gui\\home_screen",
+    "\\Appli\\TouchGFX\\gui\\src",
+    "\\Appli\\TouchGFX\\gui\\src\\home_screen"
+  ],
+  "SelectedNode": "\\Appli\\TouchGFX\\gui\\include\\gui\\home_screen\\HomeView.hpp",
+  "PreviewInSolutionExplorer": false
+}

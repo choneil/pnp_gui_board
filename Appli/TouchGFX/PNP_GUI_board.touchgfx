@@ -61,7 +61,8 @@
             "Y": 300,
             "Width": 305,
             "Height": 170,
-            "CustomContainerDefinitionName": "NavCard"
+            "CustomContainerDefinitionName": "NavCard",
+            "Clickable": true
           }
         ],
         "Interactions": [
@@ -85,6 +86,17 @@
               "Type": "ActionGotoScreen",
               "ScreenTransitionType": "ScreenTransitionNone",
               "ActionComponent": "Files"
+            }
+          },
+          {
+            "InteractionName": "Interaction4",
+            "Trigger": {
+              "Type": "TriggerNone"
+            },
+            "Action": {
+              "Type": "ActionGotoScreen",
+              "ScreenTransitionType": "ScreenTransitionNone",
+              "ActionComponent": "Camera"
             }
           }
         ]

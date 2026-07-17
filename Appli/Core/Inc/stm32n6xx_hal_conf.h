@@ -63,7 +63,7 @@ extern "C" {
 /*#define HAL_MMC_MODULE_ENABLED   */
 /*#define HAL_NAND_MODULE_ENABLED   */
 /*#define HAL_NOR_MODULE_ENABLED   */
-/*#define HAL_PCD_MODULE_ENABLED   */
+#define HAL_PCD_MODULE_ENABLED
 /*#define HAL_PKA_MODULE_ENABLED   */
 /*#define HAL_PSSI_MODULE_ENABLED   */
 #define HAL_RAMCFG_MODULE_ENABLED
@@ -71,7 +71,7 @@ extern "C" {
 /*#define HAL_RNG_MODULE_ENABLED   */
 /*#define HAL_RTC_MODULE_ENABLED   */
 /*#define HAL_SAI_MODULE_ENABLED   */
-/*#define HAL_SD_MODULE_ENABLED   */
+#define HAL_SD_MODULE_ENABLED
 /*#define HAL_SDIO_MODULE_ENABLED   */
 /*#define HAL_SDRAM_MODULE_ENABLED   */
 /*#define HAL_SMARTCARD_MODULE_ENABLED   */

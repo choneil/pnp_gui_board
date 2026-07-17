@@ -462,6 +462,11 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/generated/fonts/src/CachedFont.cpp</locationURI>
 		</link>
 		<link>
+			<name>Application/User/generated/CameraViewBase.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/generated/gui_generated/src/camera_screen/CameraViewBase.cpp</locationURI>
+		</link>
+		<link>
 			<name>Application/User/generated/CompressedFontCache.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/generated/fonts/src/CompressedFontCache.cpp</locationURI>
@@ -677,11 +682,6 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/generated/fonts/src/VectorFontRendererBuffers.cpp</locationURI>
 		</link>
 		<link>
-			<name>Application/User/generated/camera_screen</name>
-			<type>2</type>
-			<location>C:/TouchGFXProjects/PNP_GUI_board/Appli/TouchGFX/generated/gui_generated/src/camera_screen</location>
-		</link>
-		<link>
 			<name>Application/User/generated/frontViewBase.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/generated/gui_generated/src/containers/frontViewBase.cpp</locationURI>
@@ -822,6 +822,21 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/gui/src/containers/AxisJogPanel.cpp</locationURI>
 		</link>
 		<link>
+			<name>Application/User/gui/CameraPresenter.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/gui/src/camera_screen/CameraPresenter.cpp</locationURI>
+		</link>
+		<link>
+			<name>Application/User/gui/CameraPreview.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/gui/src/containers/CameraPreview.cpp</locationURI>
+		</link>
+		<link>
+			<name>Application/User/gui/CameraView.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/gui/src/camera_screen/CameraView.cpp</locationURI>
+		</link>
+		<link>
 			<name>Application/User/gui/FileListPanel.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/gui/src/containers/FileListPanel.cpp</locationURI>
@@ -885,11 +900,6 @@
 			<name>Application/User/gui/TapButton.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Appli/TouchGFX/gui/src/containers/TapButton.cpp</locationURI>
-		</link>
-		<link>
-			<name>Application/User/gui/camera_screen</name>
-			<type>2</type>
-			<location>C:/TouchGFXProjects/PNP_GUI_board/Appli/TouchGFX/gui/src/camera_screen</location>
 		</link>
 		<link>
 			<name>Application/User/gui/frontView.cpp</name>
@@ -2070,31 +2080,6 @@
 			<name>Middlewares/ST/Core/fxe_unicode_short_name_get_extended.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/Middlewares/ST/filex/common/src/fxe_unicode_short_name_get_extended.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/filex/Core/fx_ram_driver.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Middlewares/ST/filex/common/src/fx_ram_driver.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/filex/Core/fx_trace_event_insert.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Middlewares/ST/filex/common/src/fx_trace_event_insert.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/filex/Core/fx_trace_event_update.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Middlewares/ST/filex/common/src/fx_trace_event_update.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/filex/Core/fx_trace_object_register.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Middlewares/ST/filex/common/src/fx_trace_object_register.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/filex/Core/fx_trace_object_unregister.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/Middlewares/ST/filex/common/src/fx_trace_object_unregister.c</locationURI>
 		</link>
 		<link>
 			<name>Middlewares/threadx/Core/tx_block_allocate.c</name>

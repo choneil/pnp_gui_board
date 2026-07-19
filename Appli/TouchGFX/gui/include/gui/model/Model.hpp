@@ -43,6 +43,9 @@ public:
     const char* getFileName(int i) const;
     uint32_t getFileSize(int i) const;
 
+    /** Ask the storage service to re-read the card (no-op in the simulator). */
+    void requestFileRescan();
+
     // Real axis travel limits, in mm (0 = home end).
     //   X: beam assembly along the side rails, 380mm
     //   Y: toolhead carriage along the beam, 500mm

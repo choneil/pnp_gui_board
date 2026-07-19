@@ -832,17 +832,28 @@ void HAL_DCMIPP_MspInit(DCMIPP_HandleTypeDef* hdcmipp)
     HAL_NVIC_SetPriority(CSI_IRQn, 0x07, 0);
     HAL_NVIC_EnableIRQ(CSI_IRQn);
 
-    /* DCMIPP kernel clock = IC17 from PLL1/4 = 300 MHz */
+    /* CLOCK DIVIDERS ARE NOT THE ONES IN ST'S DCMIPP EXAMPLE -- ON PURPOSE.
+       That example runs PLL1 at 1200 MHz (HSI 64/4 = 16 * 75). This project's
+       FSBL runs PLL1 at 800 MHz (HSE 48/6 * 100, PLLP1 = PLLP2 = 1), so its
+       dividers of 4 and 60 would give 200 MHz and 13.33 MHz instead of the
+       intended 300 MHz and 20 MHz. The CSI reference being 2/3 of the expected
+       20 MHz makes the D-PHY lock at ~1067 Mbps while the IMX335 transmits at
+       1600 Mbps: each line syncs on its start pattern then loses bit alignment
+       after a dozen pixels, so the preview shows a narrow strip down the left
+       edge and nothing else. Recompute both if PLL1 ever changes. */
+
+    /* DCMIPP kernel clock = IC17 = PLL1/3 = 266 MHz (ST targets ~300 MHz;
+       /2 would be 400 MHz, above the peripheral maximum). */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_DCMIPP;
     PeriphClkInitStruct.DcmippClockSelection = RCC_DCMIPPCLKSOURCE_IC17;
     PeriphClkInitStruct.ICSelection[RCC_IC17].ClockSelection = RCC_ICCLKSOURCE_PLL1;
-    PeriphClkInitStruct.ICSelection[RCC_IC17].ClockDivider = 4;
+    PeriphClkInitStruct.ICSelection[RCC_IC17].ClockDivider = 3;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) { Error_Handler(); }
 
-    /* CSI PHY reference clock = IC18 from PLL1/60 */
+    /* CSI D-PHY reference clock = IC18 = PLL1/40 = exactly 20 MHz. */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CSI;
     PeriphClkInitStruct.ICSelection[RCC_IC18].ClockSelection = RCC_ICCLKSOURCE_PLL1;
-    PeriphClkInitStruct.ICSelection[RCC_IC18].ClockDivider = 60;
+    PeriphClkInitStruct.ICSelection[RCC_IC18].ClockDivider = 40;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) { Error_Handler(); }
 
     /* IMX335 power sequence: NRST = PC8, EN = PD2 */

@@ -23,7 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "app_touchgfx.h"
+#include "app_camera.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,6 +65,16 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   /* USER CODE END App_ThreadX_MEM_POOL */
   /* USER CODE BEGIN App_ThreadX_Init */
   /* USER CODE END App_ThreadX_Init */
+  ret = MX_TouchGFX_Init(memory_ptr);
+    if (ret != TX_SUCCESS)
+    {
+        return ret;
+    }
+
+  /* The camera is optional: if its thread cannot be created the GUI must
+     still boot. Returning an error here hangs tx_application_define in
+     while(1) and leaves the panel showing uninitialised framebuffer noise. */
+  (void)MX_Camera_Init(memory_ptr);
 
   return ret;
 }

@@ -21,6 +21,7 @@ public:
     int getFileCount() const;
     const char* getFileName(int i) const;
     uint32_t getFileSize(int i) const;
+    void requestRescan();
 
 private:
     FilesPresenter();

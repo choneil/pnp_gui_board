@@ -209,22 +209,60 @@ int main(void)
     MX_ICACHE_Init();
     MX_LTDC_Init();
     MX_USB1_OTG_HS_HCD_Init();
-  // MX_DCMIPP_Init();
+    /* MX_DCMIPP_Init();  -- DELIBERATELY NOT CALLED, see USER CODE BEGIN 2.
+       The camera service (Appli/Camera/App/app_camera.c) owns the DCMIPP and
+       configures it for the IMX335. This CubeMX version targets PIPE0/YUV420
+       with the CSI D-PHY at 80Mbps on ONE lane; the sensor needs PIPE1/RAW10
+       at 1600Mbps on TWO lanes. Running both leaves the D-PHY configured for
+       the wrong bitrate and no CSI data ever arrives (the preview stays
+       black even though IMX335_Probe succeeds over I2C).
+       If CubeMX regenerates this call, remove it again. */
     SystemIsolation_Config();
 
     /* USER CODE BEGIN 2 */
 
-    // 1. Hard Reset the LCD Panel NOW that GPIO is initialized
+    /* The generated MX_DCMIPP_Init is intentionally unused (see above); this
+       reference just keeps -Wunused-function quiet without deleting the
+       CubeMX-owned code. HAL_DCMIPP_MspInit is still needed and now runs from
+       the camera thread's own HAL_DCMIPP_Init, which is the correct point:
+       the sensor power-up happens when the camera actually starts. */
+    (void)MX_DCMIPP_Init;
+
+    /* Belt and braces: if a future CubeMX regeneration restores the
+       MX_DCMIPP_Init() call above, its PIPE0/YUV420/80Mbps/1-lane setup would
+       leave the CSI D-PHY wrong for the IMX335 and the preview would go black
+       again. Returning the handle to RESET here makes the camera thread's own
+       HAL_DCMIPP_Init re-run MspInit and configure the PHY from scratch, so
+       the camera keeps working either way. No-op as things currently stand. */
+    if (hdcmipp.State != HAL_DCMIPP_STATE_RESET)
+    {
+      HAL_DCMIPP_DeInit(&hdcmipp);
+    }
+
     HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_RESET);
-    HAL_Delay(20); // Hold low to reset
-    HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_SET);
-    HAL_Delay(120); // Wait for display to wake up
+      HAL_Delay(20);
+      HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_SET);
+      HAL_Delay(120);
 
+      // 2. Enable Graphics Interrupts
+      HAL_NVIC_SetPriority(LTDC_UP_IRQn, 5, 0);
+      HAL_NVIC_EnableIRQ(LTDC_UP_IRQn);
 
+      HAL_NVIC_SetPriority(DMA2D_IRQn, 5, 0);
+      HAL_NVIC_EnableIRQ(DMA2D_IRQn);
 
-    /* USER CODE END 2 */
+      HAL_NVIC_SetPriority(DCMIPP_IRQn, 5, 0);
+      HAL_NVIC_EnableIRQ(DCMIPP_IRQn);
 
-    MX_ThreadX_Init();
+      HAL_NVIC_SetPriority(CSI_IRQn, 5, 0);
+      HAL_NVIC_EnableIRQ(CSI_IRQn);
+
+      // 3. Boot the TouchGFX Engine!
+      MX_TouchGFX_PreOSInit();
+
+      /* USER CODE END 2 */
+
+      MX_ThreadX_Init();
   /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
@@ -566,7 +604,7 @@ static void MX_LTDC_Init(void)
   pLayerCfg.Alpha0 = 0;
   pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
   pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
-  pLayerCfg.FBStartAdress = 0x34200000;
+  pLayerCfg.FBStartAdress = 0x34146000;
   pLayerCfg.ImageWidth = 800;
   pLayerCfg.ImageHeight = 480;
   pLayerCfg.Backcolor.Blue = 0;
@@ -714,6 +752,23 @@ static void MX_LTDC_Init(void)
   HAL_GPIO_ConfigPinAttributes(GPIOQ,GPIO_PIN_6,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
 
   /* USER CODE BEGIN RIF_Init 1 */
+
+  /* SDMMC2 (microSD, CN13) acts as a bus master when its IDMA moves sector
+     data into SRAM. Without RIF master attributes the card still enumerates
+     perfectly -- identification is CPU-driven register access, so hsd1 shows
+     State=READY, ErrorCode=0 and the correct capacity -- but every DMA data
+     transfer is blocked. fx_media_open then cannot read the boot sector and
+     the GUI reports "SD CARD UNREADABLE" on a healthy FAT32 card.
+     Kept HERE, inside USER CODE: the generated body above lost these entries
+     in the 2026-07-17 CubeMX regeneration. */
+  {
+    RIMC_MasterConfig_t sdmmc_master = {0};
+    sdmmc_master.MasterCID = RIF_CID_1;
+    sdmmc_master.SecPriv = RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV;
+    HAL_RIF_RIMC_ConfigMasterAttributes(RIF_MASTER_INDEX_SDMMC2, &sdmmc_master);
+    HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_SDMMC2,
+                                          RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV);
+  }
 
   /* USER CODE END RIF_Init 1 */
   /* USER CODE BEGIN RIF_Init 2 */
@@ -874,15 +929,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void LTDC_IRQHandler(void)
-{
-  HAL_LTDC_IRQHandler(&hltdc);
-}
 
-void DMA2D_IRQHandler(void)
-{
-  HAL_DMA2D_IRQHandler(&hdma2d);
-}
+
 
 static void Enable_NPU_RAM_ForCore(void)
 {    

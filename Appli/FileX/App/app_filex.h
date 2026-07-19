@@ -30,7 +30,7 @@ extern "C" {
 #include "fx_api.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -52,6 +52,23 @@ extern "C" {
 UINT MX_FileX_Init(VOID *memory_ptr);
 
 /* USER CODE BEGIN EFP */
+
+/* ---- Storage service, consumed by the GUI (Model.cpp) ------------------- */
+/* The FileX thread owns the media; these accessors are safe to call from the
+   TouchGFX thread and never block on SD I/O (the file table is published
+   under a short mutex after each scan). */
+
+#define STORAGE_MAX_FILES 32
+#define STORAGE_NAME_LEN  32
+
+/* 0 = no card detected, 1 = mounted, 2 = handed to the USB host,
+   3 = card detected but fx_media_open failed (unformatted / not FAT / IO). */
+int         storage_gui_state(void);
+int         storage_get_file_count(void);
+const char* storage_get_file_name(int index);
+uint32_t    storage_get_file_size(int index);
+/* Ask the FileX thread to re-read the root directory. */
+void        storage_request_rescan(void);
 
 /* USER CODE END EFP */
 

@@ -7,6 +7,7 @@
   */
 #include "app_camera.h"
 #include "main.h"
+#include <string.h>
 #include "imx335.h"
 #include "isp_api.h"
 #include "imx335_E27_isp_param_conf.h"
@@ -245,6 +246,11 @@ static VOID cam_thread_entry(ULONG in)
     help.SetSensorExposure = helpSetExp;
     help.GetSensorExposure = helpGetExp;
 
+    /* Blank the preview buffer before the DCMIPP starts filling it, so a
+       partially written first frame never shows uninitialised memory. */
+    memset(camera_fb, 0, sizeof(camera_fb));
+    SCB_CleanDCache_by_Addr((uint32_t*)camera_fb, sizeof(camera_fb));
+
     MX_I2C1_Cam_Init();
     if (MX_DCMIPP_Init() != 0) { cam_state = CAM_ERROR; return; }
     if (IMX335_Probe() != 0) { cam_state = CAM_ERROR; return; }
@@ -261,7 +267,17 @@ static VOID cam_thread_entry(ULONG in)
 
         if (tx_event_flags_get(&cam_events, EVT_SNAPSHOT, TX_OR_CLEAR, &flags, TX_NO_WAIT) == TX_SUCCESS)
         {
-            if (!snapshot_ready) { stage_snapshot(); }
+            if (!snapshot_ready)
+            {
+                /* Sync to a frame boundary first: DCMIPP writes camera_fb
+                   continuously, so starting the copy right after a completed
+                   frame gives it a full frame period of head start and avoids
+                   an obviously torn image. */
+                uint32_t start = frame_id;
+                uint32_t spins = 0;
+                while (frame_id == start && spins++ < 100) { tx_thread_sleep(1); }
+                stage_snapshot();
+            }
         }
         tx_thread_sleep(1);
     }
@@ -286,6 +302,13 @@ uint32_t camera_get_frame_id(void) { return frame_id; }
 
 const uint16_t* camera_get_framebuffer(void)
 {
+    /* Until the pipeline is streaming, camera_fb holds uninitialised FB_RAM.
+       Handing that to the GUI paints garbage, so report "no frame" instead. */
+    if (cam_state != CAM_RUNNING)
+    {
+        return 0;
+    }
+
     /* Ensure the CPU/GPU sees the latest DMA frame. */
     SCB_InvalidateDCache_by_Addr((uint32_t*)camera_fb, sizeof(camera_fb));
     return camera_fb;

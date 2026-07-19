@@ -16,3 +16,8 @@ void CameraPresenter::deactivate()
 {
 
 }
+
+int CameraPresenter::getStorageState() const
+{
+    return model->getStorageState();
+}

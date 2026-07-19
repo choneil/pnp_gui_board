@@ -23,7 +23,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "fx_stm32_sd_driver.h"
+#include "ux_device_msc.h"
+#include "app_camera.h"
+#include "main.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,7 +41,17 @@
 /* Main thread priority */
 #define FX_APP_THREAD_PRIO               10
 /* USER CODE BEGIN PD */
+/* fx_media_open plus a full directory scan needs far more than the CubeMX
+   default 1 KB (FileX recurses and the long-name buffers are large). */
+#undef  FX_APP_THREAD_STACK_SIZE
+#define FX_APP_THREAD_STACK_SIZE  (4 * 1024)
 
+/* How often the thread polls for card insertion / snapshot work. */
+#define STORAGE_POLL_TICKS  10
+
+/* Chunk used to stage snapshot bytes out of PSRAM into a DMA-friendly,
+   32-byte aligned buffer in internal SRAM before handing them to FileX. */
+#define STORAGE_BOUNCE_SIZE 4096
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,7 +64,37 @@
 TX_THREAD       fx_app_thread;
 
 /* USER CODE BEGIN PV */
+/* Created here; the SD driver's completion macros wait on them and the DMA
+   callbacks in fx_stm32_sd_driver_glue.c signal them. */
+extern TX_SEMAPHORE sd_tx_semaphore;
+extern TX_SEMAPHORE sd_rx_semaphore;
 
+static FX_MEDIA   sd_media;
+static FX_FILE    sd_file;
+
+/* FileX media working buffer. 32-byte aligned because the SD driver runs
+   cache maintenance over it (FX_STM32_SD_CACHE_MAINTENANCE == 1). */
+static UCHAR media_memory[4 * FX_STM32_SD_DEFAULT_SECTOR_SIZE] __attribute__((aligned(32)));
+static UCHAR bounce[STORAGE_BOUNCE_SIZE] __attribute__((aligned(32)));
+
+/* Published file table, read by the GUI thread under storage_mutex. */
+typedef struct
+{
+  CHAR  name[STORAGE_NAME_LEN];
+  ULONG size;
+} storage_entry_t;
+
+static storage_entry_t file_table[STORAGE_MAX_FILES];
+static int             file_count = 0;
+static TX_MUTEX        storage_mutex;
+
+static volatile int  gui_state = 0;      /* mirrors storage_gui_state()     */
+static volatile UINT rescan_requested = 1;
+static UINT          media_opened = 0;
+
+/* Scan scratch, kept off the thread stack (FileX long names are 256 bytes). */
+static CHAR scan_name[FX_MAX_LONG_NAME_LEN];
+static storage_entry_t scan_table[STORAGE_MAX_FILES];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,7 +103,10 @@ TX_THREAD       fx_app_thread;
 void fx_app_thread_entry(ULONG thread_input);
 
 /* USER CODE BEGIN PFP */
-
+static UINT card_present(void);
+static void publish_table(const storage_entry_t *src, int count);
+static void scan_root_directory(void);
+static void write_pending_snapshot(void);
 /* USER CODE END PFP */
 
 /**
@@ -101,7 +148,20 @@ UINT MX_FileX_Init(VOID *memory_ptr)
   }
 
 /* USER CODE BEGIN MX_FileX_Init */
-
+/* The SD driver's *_CPLT_NOTIFY macros block on these; the HAL DMA callbacks
+   in fx_stm32_sd_driver_glue.c release them. Start empty. */
+  if (tx_semaphore_create(&sd_tx_semaphore, "sd tx", 0) != TX_SUCCESS)
+  {
+    return TX_SEMAPHORE_ERROR;
+  }
+  if (tx_semaphore_create(&sd_rx_semaphore, "sd rx", 0) != TX_SUCCESS)
+  {
+    return TX_SEMAPHORE_ERROR;
+  }
+  if (tx_mutex_create(&storage_mutex, "storage table", TX_INHERIT) != TX_SUCCESS)
+  {
+    return TX_MUTEX_ERROR;
+  }
 /* USER CODE END MX_FileX_Init */
 
 /* Initialize FileX.  */
@@ -123,14 +183,239 @@ UINT MX_FileX_Init(VOID *memory_ptr)
  {
 
 /* USER CODE BEGIN fx_app_thread_entry 0*/
-
+  FX_PARAMETER_NOT_USED(thread_input);
 /* USER CODE END fx_app_thread_entry 0*/
 
 /* USER CODE BEGIN fx_app_thread_entry 1*/
+  for (;;)
+  {
+    /* While the PC owns the card over USB MSC, keep off the media entirely. */
+    if (storage_get_state() == STORAGE_USB_ATTACHED)
+    {
+      gui_state = 2;
+      tx_thread_sleep(STORAGE_POLL_TICKS);
+      continue;
+    }
 
+    if (!card_present())
+    {
+      if (media_opened)
+      {
+        fx_media_close(&sd_media);
+        media_opened = 0;
+        publish_table(scan_table, 0);
+      }
+      gui_state = 0;
+      /* Nothing can be written without a card; release the staging slot so
+         the camera thread is not blocked from staging a later snapshot. */
+      if (camera_snapshot_ready())
+      {
+        camera_snapshot_consumed();
+      }
+      rescan_requested = 1;   /* rescan whenever a card comes back */
+      tx_thread_sleep(STORAGE_POLL_TICKS);
+      continue;
+    }
+
+    if (!media_opened)
+    {
+      if (fx_media_open(&sd_media, "PNP SD", fx_stm32_sd_driver, 0,
+                        media_memory, sizeof(media_memory)) != FX_SUCCESS)
+      {
+        /* A card is physically present but would not mount (unformatted, not
+           FAT, or an IO error). Report that distinctly from "no card" so the
+           two failures can be told apart on the panel. */
+        gui_state = 3;
+        tx_thread_sleep(STORAGE_POLL_TICKS);
+        continue;
+      }
+      media_opened = 1;
+      rescan_requested = 1;
+    }
+
+    gui_state = 1;
+
+    /* A staged camera snapshot takes priority over listing. */
+    if (camera_snapshot_ready())
+    {
+      write_pending_snapshot();
+    }
+
+    if (rescan_requested)
+    {
+      rescan_requested = 0;
+      scan_root_directory();
+    }
+
+    tx_thread_sleep(STORAGE_POLL_TICKS);
+  }
 /* USER CODE END fx_app_thread_entry 1*/
   }
 
 /* USER CODE BEGIN 1 */
+
+/* SD_DETECT is active low on the STM32N6570-DK (card present pulls it down). */
+static UINT card_present(void)
+{
+  return (HAL_GPIO_ReadPin(SD_DETECT_GPIO_Port, SD_DETECT_Pin) == GPIO_PIN_RESET) ? 1U : 0U;
+}
+
+/* Copy a freshly scanned table into the one the GUI reads. The mutex is held
+   only for the memcpy, never across SD I/O, so the render thread cannot stall
+   behind a card transfer. */
+static void publish_table(const storage_entry_t *src, int count)
+{
+  if (count > STORAGE_MAX_FILES)
+  {
+    count = STORAGE_MAX_FILES;
+  }
+
+  if (tx_mutex_get(&storage_mutex, TX_WAIT_FOREVER) == TX_SUCCESS)
+  {
+    if (count > 0)
+    {
+      memcpy(file_table, src, (size_t)count * sizeof(storage_entry_t));
+    }
+    file_count = count;
+    tx_mutex_put(&storage_mutex);
+  }
+}
+
+/* Read the root directory into scan_table, skipping subdirectories. */
+static void scan_root_directory(void)
+{
+  UINT  attributes = 0;
+  ULONG size = 0;
+  UINT  year, month, day, hour, minute, second;
+  UINT  status;
+  int   count = 0;
+
+  status = fx_directory_first_full_entry_find(&sd_media, scan_name, &attributes, &size,
+                                              &year, &month, &day, &hour, &minute, &second);
+
+  while (status == FX_SUCCESS && count < STORAGE_MAX_FILES)
+  {
+    if ((attributes & (FX_DIRECTORY | FX_VOLUME)) == 0)
+    {
+      strncpy(scan_table[count].name, scan_name, STORAGE_NAME_LEN - 1);
+      scan_table[count].name[STORAGE_NAME_LEN - 1] = '\0';
+      scan_table[count].size = size;
+      count++;
+    }
+
+    status = fx_directory_next_full_entry_find(&sd_media, scan_name, &attributes, &size,
+                                               &year, &month, &day, &hour, &minute, &second);
+  }
+
+  publish_table(scan_table, count);
+}
+
+/* Write the BMP the camera thread staged in PSRAM, then release the slot.
+   Bytes go out through an aligned SRAM bounce buffer so the SD DMA and its
+   cache maintenance never operate directly on the PSRAM staging buffer. */
+static void write_pending_snapshot(void)
+{
+  const uint8_t *data;
+  uint32_t       length = 0;
+  uint32_t       offset = 0;
+  const char    *name = camera_snapshot_name();
+
+  data = camera_snapshot_data(&length);
+  if (data == 0 || length == 0)
+  {
+    camera_snapshot_consumed();
+    return;
+  }
+
+  /* Overwrite any previous file of the same name. */
+  fx_file_delete(&sd_media, (CHAR *)name);
+
+  if (fx_file_create(&sd_media, (CHAR *)name) != FX_SUCCESS ||
+      fx_file_open(&sd_media, &sd_file, (CHAR *)name, FX_OPEN_FOR_WRITE) != FX_SUCCESS)
+  {
+    camera_snapshot_consumed();
+    return;
+  }
+
+  while (offset < length)
+  {
+    uint32_t chunk = length - offset;
+    if (chunk > STORAGE_BOUNCE_SIZE)
+    {
+      chunk = STORAGE_BOUNCE_SIZE;
+    }
+
+    memcpy(bounce, data + offset, chunk);
+
+    if (fx_file_write(&sd_file, bounce, chunk) != FX_SUCCESS)
+    {
+      break;
+    }
+    offset += chunk;
+  }
+
+  fx_file_close(&sd_file);
+  fx_media_flush(&sd_media);
+
+  camera_snapshot_consumed();
+  rescan_requested = 1;   /* the new file should appear in the list */
+}
+
+/* ---- GUI-facing accessors (called from the TouchGFX thread) ------------- */
+
+int storage_gui_state(void)
+{
+  return gui_state;
+}
+
+int storage_get_file_count(void)
+{
+  int count = 0;
+
+  if (tx_mutex_get(&storage_mutex, TX_NO_WAIT) == TX_SUCCESS)
+  {
+    count = file_count;
+    tx_mutex_put(&storage_mutex);
+  }
+
+  return count;
+}
+
+const char* storage_get_file_name(int index)
+{
+  const char *name = "";
+
+  if (tx_mutex_get(&storage_mutex, TX_NO_WAIT) == TX_SUCCESS)
+  {
+    if (index >= 0 && index < file_count)
+    {
+      name = file_table[index].name;
+    }
+    tx_mutex_put(&storage_mutex);
+  }
+
+  return name;
+}
+
+uint32_t storage_get_file_size(int index)
+{
+  uint32_t size = 0;
+
+  if (tx_mutex_get(&storage_mutex, TX_NO_WAIT) == TX_SUCCESS)
+  {
+    if (index >= 0 && index < file_count)
+    {
+      size = (uint32_t)file_table[index].size;
+    }
+    tx_mutex_put(&storage_mutex);
+  }
+
+  return size;
+}
+
+void storage_request_rescan(void)
+{
+  rescan_requested = 1;
+}
 
 /* USER CODE END 1 */

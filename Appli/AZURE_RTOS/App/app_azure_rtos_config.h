@@ -53,6 +53,16 @@ extern "C" {
 
 /* USER CODE BEGIN EC */
 
+/* Thread stacks come out of this pool: TouchGFX 4080 + camera 4096 + FileX
+   4096, plus ThreadX per-block overhead. CubeMX's default of 8192 above is
+   not enough for even the first two, and the allocation failure hangs
+   tx_application_define in while(1) -- the LTDC then scans uninitialised
+   FB_RAM, so the panel shows a screenful of garbage rather than crashing.
+   Overridden HERE, inside USER CODE, because a CubeMX regeneration on
+   2026-07-17 silently reset the generated value and cost a debug session. */
+#undef  TX_APP_MEM_POOL_SIZE
+#define TX_APP_MEM_POOL_SIZE                     32768
+
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

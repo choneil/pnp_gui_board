@@ -43,3 +43,8 @@ Secure_nsclib/*.o
 build/
 Appli*/build/
 FSBL/build/
+
+# Visual Studio / editor caches (~360MB, not ignored by the ST template)
+.vs/
+Appli*/.vs/
+*.bak

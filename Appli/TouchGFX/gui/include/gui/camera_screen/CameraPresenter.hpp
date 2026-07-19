@@ -27,6 +27,9 @@ public:
 
     virtual ~CameraPresenter() {}
 
+    /** 0 = no card, 1 = mounted, 2 = handed to USB. */
+    int getStorageState() const;
+
 private:
     CameraPresenter();
 

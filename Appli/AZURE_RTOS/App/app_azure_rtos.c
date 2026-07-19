@@ -129,8 +129,8 @@ VOID tx_application_define(VOID *first_unused_memory)
     /* Storage and USB are optional at boot: a failure here (no card, pool
        exhausted, ...) must never block the GUI from starting. */
     (void)MX_FileX_Init(memory_ptr);
-    (void)MX_USBX_Device_Init(memory_ptr);
-    (void)MX_Camera_Init(memory_ptr);
+   // (void)MX_USBX_Device_Init(memory_ptr);
+   // (void)MX_Camera_Init(memory_ptr);
     /* USER CODE END  App_ThreadX_Init_Success */
 
   }
@@ -147,7 +147,7 @@ VOID tx_application_define(VOID *first_unused_memory)
     /* USER CODE END FX_Byte_Pool_Success */
 
     memory_ptr = (VOID *)&fx_app_byte_pool;
-    status = MX_FileX_Init(memory_ptr);
+   // status = MX_FileX_Init(memory_ptr);
     if (status != FX_SUCCESS)
     {
       /* USER CODE BEGIN  MX_FileX_Init_Error */
@@ -174,7 +174,7 @@ VOID tx_application_define(VOID *first_unused_memory)
     /* USER CODE END UX_Byte_Pool_Success */
 
     memory_ptr = (VOID *)&ux_app_byte_pool;
-    status = MX_USBX_Init(memory_ptr);
+   // status = MX_USBX_Init(memory_ptr);
     if (status != UX_SUCCESS)
     {
       /* USER CODE BEGIN  MX_USBX_Init_Error */

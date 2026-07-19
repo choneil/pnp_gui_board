@@ -238,9 +238,26 @@
             "Width": 90,
             "Height": 40,
             "CustomContainerDefinitionName": "NavButton"
+          },
+          {
+            "Type": "Image",
+            "Name": "cameraImage",
+            "Width": 800,
+            "Height": 480,
+            "RelativeFilename": "__generated\\alternate_theme_images_backgrounds_800x480_gradient_light.png"
           }
         ],
-        "Interactions": []
+        "Interactions": [
+          {
+            "InteractionName": "Interaction1",
+            "Trigger": {
+              "Type": "TriggerNone"
+            },
+            "Action": {
+              "Type": "ActionNone"
+            }
+          }
+        ]
       }
     ],
     "CustomContainerDefinitions": [

@@ -1,6 +1,12 @@
 #include <gui/model/Model.hpp>
 #include <gui/model/ModelListener.hpp>
 
+#ifndef SIMULATOR
+extern "C" {
+#include "app_filex.h"
+}
+#endif
+
 namespace
 {
 float clampf(float value, float lo, float hi)
@@ -49,6 +55,7 @@ void Model::requestAxisMove(int axis, float target)
     }
 }
 
+#ifdef SIMULATOR
 namespace
 {
 // Simulator stand-in for the SD card contents (board: FileX storage service).
@@ -61,7 +68,15 @@ const StubFile STUB_FILES[] =
 };
 const int STUB_COUNT = sizeof(STUB_FILES) / sizeof(STUB_FILES[0]);
 }
+#endif
 
+#ifndef SIMULATOR
+int Model::getStorageState() const   { return storage_gui_state(); }
+int Model::getFileCount() const      { return storage_get_file_count(); }
+const char* Model::getFileName(int i) const { return storage_get_file_name(i); }
+uint32_t Model::getFileSize(int i) const    { return storage_get_file_size(i); }
+void Model::requestFileRescan()             { storage_request_rescan(); }
+#else
 int Model::getStorageState() const
 {
     return 1;  // simulator: always "mounted"
@@ -81,6 +96,12 @@ uint32_t Model::getFileSize(int i) const
 {
     return (i >= 0 && i < STUB_COUNT) ? STUB_FILES[i].size : 0;
 }
+
+void Model::requestFileRescan()
+{
+    // Nothing to rescan: the simulator list is static.
+}
+#endif
 
 void Model::tick()
 {

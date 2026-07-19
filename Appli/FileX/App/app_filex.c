@@ -64,11 +64,6 @@
 TX_THREAD       fx_app_thread;
 
 /* USER CODE BEGIN PV */
-/* Created here; the SD driver's completion macros wait on them and the DMA
-   callbacks in fx_stm32_sd_driver_glue.c signal them. */
-extern TX_SEMAPHORE sd_tx_semaphore;
-extern TX_SEMAPHORE sd_rx_semaphore;
-
 static FX_MEDIA   sd_media;
 static FX_FILE    sd_file;
 
@@ -95,6 +90,14 @@ static UINT          media_opened = 0;
 /* Scan scratch, kept off the thread stack (FileX long names are 256 bytes). */
 static CHAR scan_name[FX_MAX_LONG_NAME_LEN];
 static storage_entry_t scan_table[STORAGE_MAX_FILES];
+
+/* --- Diagnostics, read live over SWD with STM32_Programmer_CLI -r32 --------
+   Nothing reads these in firmware; they exist so a mount failure can be
+   diagnosed on hardware without a debug session. See AFTER_CUBEMX_REGEN.md. */
+volatile UINT  dbg_open_status   = 0xFFFFFFFFu;  /* last fx_media_open() return   */
+volatile ULONG dbg_open_attempts = 0;            /* how many times it was tried   */
+volatile UINT  dbg_drv_status    = 0xFFFFFFFFu;  /* media->fx_media_driver_status */
+volatile UINT  dbg_drv_request   = 0xFFFFFFFFu;  /* last driver request issued    */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -148,16 +151,12 @@ UINT MX_FileX_Init(VOID *memory_ptr)
   }
 
 /* USER CODE BEGIN MX_FileX_Init */
-/* The SD driver's *_CPLT_NOTIFY macros block on these; the HAL DMA callbacks
-   in fx_stm32_sd_driver_glue.c release them. Start empty. */
-  if (tx_semaphore_create(&sd_tx_semaphore, "sd tx", 0) != TX_SUCCESS)
-  {
-    return TX_SEMAPHORE_ERROR;
-  }
-  if (tx_semaphore_create(&sd_rx_semaphore, "sd rx", 0) != TX_SUCCESS)
-  {
-    return TX_SEMAPHORE_ERROR;
-  }
+/* Do NOT create sd_tx_semaphore / sd_rx_semaphore here. The SD driver's
+   FX_STM32_SD_PRE_INIT macro (Appli/FileX/Target/fx_stm32_sd_driver.h)
+   creates them itself on FX_DRIVER_INIT, and ThreadX returns
+   TX_SEMAPHORE_ERROR when a semaphore is created twice -- which makes that
+   macro set FX_IO_ERROR, so fx_media_open fails at INIT and never reaches
+   the boot sector read. That looks exactly like broken SD hardware. */
   if (tx_mutex_create(&storage_mutex, "storage table", TX_INHERIT) != TX_SUCCESS)
   {
     return TX_MUTEX_ERROR;
@@ -219,8 +218,17 @@ UINT MX_FileX_Init(VOID *memory_ptr)
 
     if (!media_opened)
     {
-      if (fx_media_open(&sd_media, "PNP SD", fx_stm32_sd_driver, 0,
-                        media_memory, sizeof(media_memory)) != FX_SUCCESS)
+      /* Do NOT touch hsd1 here: MX_SDMMC2_SD_Init runs lazily inside
+         fx_media_open (via fx_stm32_sd_init on FX_DRIVER_INIT), so before the
+         first open hsd1.Instance is still NULL and SDMMC2 is unclocked.
+         Reading card state here faults and freezes every thread. */
+      dbg_open_attempts++;
+      dbg_open_status = fx_media_open(&sd_media, "PNP SD", fx_stm32_sd_driver, 0,
+                                      media_memory, sizeof(media_memory));
+      dbg_drv_status = sd_media.fx_media_driver_status;
+      dbg_drv_request = sd_media.fx_media_driver_request;
+
+      if (dbg_open_status != FX_SUCCESS)
       {
         /* A card is physically present but would not mount (unformatted, not
            FAT, or an IO error). Report that distinctly from "no card" so the
